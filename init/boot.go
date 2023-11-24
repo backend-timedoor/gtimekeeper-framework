@@ -14,7 +14,7 @@ func Boot(pvds []contracts.ServiceProvider) {
 	}...)
 
 	for _, provider := range pvds {
-		provider.Boot()
+		provider.Register()
 		r := reflect.TypeOf(provider).Elem()
 		if (r.Name() == "ConfigServiceProvider") {
 			log := providers.LogServiceProvider{}
@@ -22,6 +22,6 @@ func Boot(pvds []contracts.ServiceProvider) {
 			log.Boot()
 		}
 
-		provider.Register()
+		provider.Boot()
 	}
 }
