@@ -8,13 +8,13 @@ import (
 	"github.com/go-redis/redis"
 )
 
-func BootCache(prefix string) contracts.Cache {
+func BootCache() contracts.Cache {
 	config := app.Config.Get("database.redis").(map[string]any)
 
 	cache := redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s:%s", config["host"].(string), config["port"].(string)),
 		Password: config["password"].(string),
-		DB: 0,
+		DB: app.Config.GetInt("database.redis.REDIS_DB", 0),
 	})
 
 	_, err := cache.Ping().Result()
@@ -24,9 +24,7 @@ func BootCache(prefix string) contracts.Cache {
 		app.Log.Errorf("failed to link redis: %s", err)
 	}
 
-	if prefix == "" {
-		prefix = "gtime_keeper"
-	}
+	prefix := app.Config.GetString("database.redis.REDIS_PREFIX", "gtime_keeper")
 
 	return &Redis{
 		Redis: cache,

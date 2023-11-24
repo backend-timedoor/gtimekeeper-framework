@@ -1,10 +1,12 @@
 package contracts
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/hibiken/asynq"
 	"github.com/urfave/cli/v2"
 	"gorm.io/gorm"
 )
@@ -63,4 +65,26 @@ type DatabaseDriver interface {
 	GetDriver() (database.Driver, error)
 	GetGormDialect() gorm.Dialector
 	GetDsn() string
+}
+
+type Queue interface {
+	Job(job Job, args any)
+	Run()
+}
+
+type Job interface {
+	Signature() string
+	Options() []asynq.Option
+	Handle(context.Context, *asynq.Task) error
+}
+
+type Schedule interface {
+	Run()
+	Stop()
+}
+
+type ScheduleEvent interface {
+	Signature() string
+	Schedule() string
+	Handle()
 }

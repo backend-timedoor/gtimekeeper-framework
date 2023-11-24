@@ -13,6 +13,8 @@ var (
 	Log    *logrus.Logger
 	Server   contracts.Server
 	Cache  contracts.Cache
+	Queue contracts.Queue
+	Schedule contracts.Schedule
 )
 
 
