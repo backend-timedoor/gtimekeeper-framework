@@ -7,7 +7,7 @@ import (
 	"github.com/backend-timedoor/gtimekeeper/providers"
 )
 
-func Boot(pvds []contracts.ServiceProvider) {
+func Booting(pvds []contracts.ServiceProvider) {
 	pvds = append(pvds, []contracts.ServiceProvider{
 		&providers.CacheServiceProvider{},
 		&providers.DatabaseServiceProvider{},
