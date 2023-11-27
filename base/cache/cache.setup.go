@@ -14,7 +14,7 @@ func BootCache() contracts.Cache {
 	cache := redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s:%s", config["host"].(string), config["port"].(string)),
 		Password: config["password"].(string),
-		DB: app.Config.GetInt("database.redis.REDIS_DB", 0),
+		DB: app.Config.GetInt("database.redis.database", 0),
 	})
 
 	_, err := cache.Ping().Result()
@@ -24,7 +24,7 @@ func BootCache() contracts.Cache {
 		app.Log.Errorf("failed to link redis: %s", err)
 	}
 
-	prefix := app.Config.GetString("database.redis.REDIS_PREFIX", "gtime_keeper")
+	prefix := app.Config.GetString("database.redis.prefix", "gtime_keeper")
 
 	return &Redis{
 		Redis: cache,

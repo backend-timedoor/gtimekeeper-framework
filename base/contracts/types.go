@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/hibiken/asynq"
 	"github.com/urfave/cli/v2"
@@ -87,4 +88,9 @@ type ScheduleEvent interface {
 	Signature() string
 	Schedule() string
 	Handle()
+}
+
+type Validation interface {
+	Signature() string
+	Handle(validator.FieldLevel) bool
 }

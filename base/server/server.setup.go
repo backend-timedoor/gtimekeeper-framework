@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/backend-timedoor/gtimekeeper/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper/base/server/validation"
 )
 
 
@@ -18,7 +19,8 @@ func BootServer(servers []contracts.ServerHandle) contracts.Server {
 		serverBag[reflect.TypeOf(server).Elem().Name()] = server
 	}
 
-	s.servers = serverBag
+	s.Servers = serverBag
+	s.Validation = validation.BootCustomValidation()
 
 	return s
 }

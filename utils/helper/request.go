@@ -18,7 +18,7 @@ func MapAndValidate(c echo.Context, model any, request any) error {
 
 func Validation(c echo.Context, request any) error {
 	if err := c.Bind(&request); err != nil {
-		return ErrorReponse(http.StatusBadRequest, err.Error())
+		return Response(http.StatusBadRequest, err.Error())
 	}
 
 	if err := c.Validate(request); err != nil {

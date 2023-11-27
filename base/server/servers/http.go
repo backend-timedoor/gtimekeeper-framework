@@ -1,9 +1,6 @@
 package servers
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/backend-timedoor/gtimekeeper/app"
@@ -11,12 +8,12 @@ import (
 )
 
 type Http struct{
-	server *echo.Echo
+	Server *echo.Echo
 	Modules []any
 }
 
 func (h *Http) Start() {
-	h.server = echo.New()
+	h.Server = echo.New()
 }
 
 func (h *Http) Handler() {
@@ -26,7 +23,7 @@ func (h *Http) Handler() {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
 			handlers := reflect.ValueOf(module).MethodByName(method.Name).Call([]reflect.Value{
-				reflect.ValueOf(h.server),
+				reflect.ValueOf(h.Server),
 			})
 			
 			for _, handler := range handlers[1].Interface().([]any) {
@@ -39,14 +36,13 @@ func (h *Http) Handler() {
 }
 
 func (h *Http) Run(address string) {
-	data, err := json.MarshalIndent(h.server.Routes(), "", "  ")
-	if err != nil {
-		fmt.Println(err)
-	}
-	os.WriteFile("routes.json", data, 0644)
+	// data, err := json.MarshalIndent(h.server.Routes(), "", "  ")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// os.WriteFile("routes.json", data, 0644)
 
-	fmt.Println("http server running on " + address)
-	if err := h.server.Start(address); err != nil {
+	if err := h.Server.Start(address); err != nil {
 		app.Log.Error(err.Error())
 	}
 }

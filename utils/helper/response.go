@@ -9,7 +9,7 @@ import (
 
 type Resp map[string]any
 
-func ErrorReponse(code int, err any) error {
+func Response(code int, err any) error {
 	return echo.NewHTTPError(code, err)
 }
 
@@ -28,7 +28,7 @@ func UnauthenticatedErrorReponse(args ...any) error {
 		}
 	}
 
-	return ErrorReponse(http.StatusUnauthorized, map[string]string{
+	return Response(http.StatusUnauthorized, map[string]string{
 		"message": message,
 	})
 }

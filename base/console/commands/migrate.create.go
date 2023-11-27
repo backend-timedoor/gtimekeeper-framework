@@ -96,8 +96,8 @@ func createFile(direction string, filename string, nameArg string) error {
 func upStatement(file *os.File, table string) {
 	statement := fmt.Sprintf(`CREATE TABLE %s (
 	id SERIAL PRIMARY KEY,
-	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+	created_at TIMESTAMPTZ,
+	updated_at TIMESTAMPTZ
 );`, table)
 
 	_, err := file.WriteString(statement)
@@ -116,10 +116,13 @@ func downStatement(file *os.File, table string) {
 }
 
 func extractTableName(filename string) string {
-	tableName := strings.TrimPrefix(filename, "create_")
-	tableName = strings.TrimSuffix(tableName, "_table")
+	parts := strings.Split(filename, "_")
 
-	return tableName
+	if len(parts) > 1 && parts[0] == "create" && parts[1] == "table" {
+		return strings.Join(parts[2:], "_")
+	}
+
+	return "table"
 }
 
 func extractAction(input string) string {

@@ -10,12 +10,12 @@ import (
 )
 
 type Grpc struct{
-	server *grpc.Server
+	Server *grpc.Server
 	Modules []any
 }
 
 func (g *Grpc) Start() {
-	g.server = grpc.NewServer()
+	g.Server = grpc.NewServer()
 }
 
 func (g *Grpc) Handler() {
@@ -28,7 +28,7 @@ func (g *Grpc) Handler() {
 			
 			for _, handler := range handlers[0].Interface().([]any) {
 				reflect.ValueOf(handler).MethodByName("Boot").Call([]reflect.Value{
-					reflect.ValueOf(g.server),
+					reflect.ValueOf(g.Server),
 				})
 			}
 		}
@@ -42,7 +42,7 @@ func (g *Grpc) Run(address string) {
 	}
 
 	fmt.Println("grpc server running on " + listener.Addr().String())
-	if err = g.server.Serve(listener); err != nil {
+	if err = g.Server.Serve(listener); err != nil {
 		app.Log.Error(err.Error())
 	}
 }

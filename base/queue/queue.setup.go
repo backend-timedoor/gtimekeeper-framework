@@ -14,7 +14,7 @@ func BootQueue() contracts.Queue {
 	redis := asynq.RedisClientOpt{
         Addr: fmt.Sprintf("%s:%s", config["host"].(string), config["port"].(string)),
 		Password: config["password"].(string),
-		DB: app.Config.GetInt("database.redis.REDIS_DB", 0),
+		DB: app.Config.GetInt("database.redis.database", 0),
     }
 	
 	// init client
