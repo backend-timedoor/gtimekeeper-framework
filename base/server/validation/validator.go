@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/backend-timedoor/gtimekeeper/utils/helper"
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/helper"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"

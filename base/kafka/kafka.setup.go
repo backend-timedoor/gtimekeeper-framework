@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
 	"github.com/segmentio/kafka-go"
 )
 

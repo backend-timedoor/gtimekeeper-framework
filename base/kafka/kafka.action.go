@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	kafkaPkg "github.com/segmentio/kafka-go"
 )
 

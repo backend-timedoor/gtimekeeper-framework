@@ -3,7 +3,7 @@ package commands
 import (
 	"log"
 
-	"github.com/backend-timedoor/gtimekeeper/base/database"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/database"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/source/file"

@@ -3,8 +3,8 @@ package boot
 import (
 	"reflect"
 
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper/providers"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/providers"
 )
 
 func Booting(pvds []contracts.ServiceProvider) {

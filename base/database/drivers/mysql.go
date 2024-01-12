@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/golang-migrate/migrate/v4/database"
 	my "github.com/golang-migrate/migrate/v4/database/postgres"
 	"gorm.io/driver/mysql"

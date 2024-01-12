@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper/utils/database"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/database"
 	"github.com/sirupsen/logrus"
 )
 

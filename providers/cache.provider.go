@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"github.com/backend-timedoor/gtimekeeper/app"
-	"github.com/backend-timedoor/gtimekeeper/base/cache"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/cache"
 )
 
 type CacheServiceProvider struct{}

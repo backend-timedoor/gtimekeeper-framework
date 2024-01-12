@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/labstack/echo/v4"
 )
 

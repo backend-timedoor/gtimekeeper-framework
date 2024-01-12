@@ -3,8 +3,8 @@ package console
 import (
 	"os"
 
-	cmd "github.com/backend-timedoor/gtimekeeper/base/console/commands"
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
+	cmd "github.com/backend-timedoor/gtimekeeper-framework/base/console/commands"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
 	"github.com/urfave/cli/v2"
 )
 

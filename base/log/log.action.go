@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"slices"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/sirupsen/logrus"
 )
 

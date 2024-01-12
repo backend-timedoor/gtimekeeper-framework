@@ -3,7 +3,7 @@ package paginate
 import (
 	"math"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"gorm.io/gorm"
 )
 

@@ -5,7 +5,7 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"google.golang.org/grpc"
 )
 

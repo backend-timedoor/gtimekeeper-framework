@@ -3,7 +3,7 @@ package custom
 import (
 	"strings"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/go-playground/validator/v10"
 )
 

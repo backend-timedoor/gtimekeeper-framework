@@ -1,10 +1,10 @@
 package server
 
 import (
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper/base/server/servers"
-	"github.com/backend-timedoor/gtimekeeper/base/server/validation"
-	"github.com/backend-timedoor/gtimekeeper/base/server/validation/custom"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/server/servers"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation/custom"
 )
 
 type Server struct {

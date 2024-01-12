@@ -1,4 +1,4 @@
-module github.com/backend-timedoor/gtimekeeper
+module github.com/backend-timedoor/gtimekeeper-framework-framework
 
 go 1.21.4
 

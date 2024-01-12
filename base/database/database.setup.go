@@ -3,10 +3,10 @@ package database
 import (
 	"context"
 
-	"github.com/backend-timedoor/gtimekeeper/app"
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper/base/database/drivers"
-	"github.com/backend-timedoor/gtimekeeper/utils/database"
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/database/drivers"
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/database"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/gorm"

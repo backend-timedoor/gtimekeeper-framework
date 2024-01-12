@@ -3,8 +3,8 @@ package server
 import (
 	"reflect"
 
-	"github.com/backend-timedoor/gtimekeeper/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper/base/server/validation"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation"
 )
 
 
