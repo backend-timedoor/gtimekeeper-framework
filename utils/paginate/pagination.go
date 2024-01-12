@@ -14,14 +14,14 @@ type PaginationRequest struct {
 
 type PaginationResponse struct {
 	Data       any        `json:"data"`
-	Pagination Pagination `json:"pagination"`
+	Pagination Pagination `json:"meta"`
 }
 
 type Pagination struct {
-	Page       int `json:"page"`
-	TotalPages int `json:"total_pages"`
-	TotalData  int `json:"total_data"`
-	Limit      int `json:"limit"`
+	CurrentPage  int `json:"current_page"`
+	LastPage     int `json:"last_page"`
+	Total  		 int `json:"total"`
+	PerPage      int `json:"per_page"`
 }
 
 func (r *PaginationRequest) GetPaginationRequest() error {
@@ -46,10 +46,10 @@ func Paginate(model interface{}, p *Pagination, req *PaginationRequest) func(db 
 	app.DB.Model(model).Count(&totalData)
 
 	totalPages := math.Ceil(float64(totalData) / float64(req.Limit))
-	p.TotalPages = int(totalPages)
-	p.TotalData = int(totalData)
-	p.Page = req.Page
-	p.Limit = req.Limit
+	p.LastPage = int(totalPages)
+	p.Total = int(totalData)
+	p.CurrentPage = req.Page
+	p.PerPage = req.Limit
 
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Offset(offset).Limit(req.Limit)
