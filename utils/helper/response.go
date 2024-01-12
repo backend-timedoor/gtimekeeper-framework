@@ -9,12 +9,20 @@ import (
 
 type Resp map[string]any
 
+func SuccessResponse(c echo.Context, code int, data any) error {
+	return c.JSON(code, Resp{
+		"data": data,
+	})
+}
+
 func ErrorResponse(code int, err any) error {
-	return echo.NewHTTPError(code, err)
+	return echo.NewHTTPError(code, Resp{
+		"message": err,
+	})
 }
 
 func UnauthenticatedErrorReponse(args ...any) error {
-	message := "Unauthenticated"
+	errMessage := "Unauthenticated"
 
 	if len(args) >= 1 {
 		if args[0] != "" {
@@ -23,12 +31,10 @@ func UnauthenticatedErrorReponse(args ...any) error {
 			// case reflect.Int:
 			// 	fmt.Printf("Value: %v, Type: int\n", v)
 			default:
-				message = args[0].(string)
+				errMessage = args[0].(string)
 			}
 		}
 	}
 
-	return ErrorResponse(http.StatusUnauthorized, map[string]string{
-		"message": message,
-	})
+	return ErrorResponse(http.StatusUnauthorized, errMessage)
 }
