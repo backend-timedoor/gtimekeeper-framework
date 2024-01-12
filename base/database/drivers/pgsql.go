@@ -33,7 +33,6 @@ func (d *PgsqlDriver) GetGormDialect() gorm.Dialector {
 
 func (d *PgsqlDriver) GetDsn() string {
 	config := app.Config
-
 	pgsql := config.Get("database.pgsql").(map[string]any)
 
 	// "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",

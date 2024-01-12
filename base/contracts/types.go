@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/hibiken/asynq"
+	"github.com/segmentio/kafka-go"
 	"github.com/urfave/cli/v2"
 	"gorm.io/gorm"
 )
@@ -29,6 +30,7 @@ type Config interface {
 type Server interface {
 	Grpc() ServerHandle
 	Http() ServerHandle
+	RegisterCustomeValidation([]Validation)
 }
 
 type ServerHandle interface {
@@ -93,4 +95,15 @@ type ScheduleEvent interface {
 type Validation interface {
 	Signature() string
 	Handle(validator.FieldLevel) bool
+}
+
+type KafkaConsumer interface {
+	Topic() string
+	Group() string
+	Handle(kafka.Message)
+}
+
+type Kafka interface {
+	Produce(...kafka.Message)
+	// Consume(string, string, kafka.Message)
 }

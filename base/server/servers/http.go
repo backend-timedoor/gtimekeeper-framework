@@ -1,6 +1,9 @@
 package servers
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/backend-timedoor/gtimekeeper/app"
@@ -17,30 +20,41 @@ func (h *Http) Start() {
 }
 
 func (h *Http) Handler() {
-		for _, module := range h.Modules {
-		methods := reflect.TypeOf(module)
+	for _, module := range h.Modules {
+		h.registerHandler(module, h.Server.Group(""))
+	}
+}
 
+func (h *Http) registerHandler(t any, args ...any) {
+	var route reflect.Value
+	if len(args) >= 1 {
+		route = reflect.ValueOf(args[0])
+	}
+
+	methods := reflect.TypeOf(t)
+	_, isHandler := methods.MethodByName("Boot")
+
+	if !isHandler {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
-			handlers := reflect.ValueOf(module).MethodByName(method.Name).Call([]reflect.Value{
-				reflect.ValueOf(h.Server),
-			})
-			
-			for _, handler := range handlers[1].Interface().([]any) {
-				reflect.ValueOf(handler).MethodByName("Boot").Call([]reflect.Value{
-					reflect.ValueOf(handlers[0].Interface()),
-				})
+
+			execMethod := reflect.ValueOf(t).MethodByName(method.Name).Call([]reflect.Value{route})
+
+			for _, instance := range execMethod[1].Interface().([]any) {
+				h.registerHandler(instance, execMethod[0].Interface())
 			}
 		}
+	} else {
+		reflect.ValueOf(t).MethodByName("Boot").Call([]reflect.Value{route})
 	}
 }
 
 func (h *Http) Run(address string) {
-	// data, err := json.MarshalIndent(h.server.Routes(), "", "  ")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// os.WriteFile("routes.json", data, 0644)
+	data, err := json.MarshalIndent(h.Server.Routes(), "", "  ")
+	if err != nil {
+		fmt.Println(err)
+	}
+	os.WriteFile("routes.json", data, 0644)
 
 	if err := h.Server.Start(address); err != nil {
 		app.Log.Error(err.Error())

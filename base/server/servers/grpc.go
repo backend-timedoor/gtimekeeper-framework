@@ -19,24 +19,33 @@ func (g *Grpc) Start() {
 }
 
 func (g *Grpc) Handler() {
-		for _, module := range g.Modules {
-		methods := reflect.TypeOf(module)
+	for _, module := range g.Modules {
+		g.registerHandler(module)
+	}
+}
 
+func (g *Grpc) registerHandler(t any) {
+	methods := reflect.TypeOf(t)
+	_, isHandler := methods.MethodByName("Boot")
+
+	if !isHandler {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
-			handlers := reflect.ValueOf(module).MethodByName(method.Name).Call(nil)
+			execMethod := reflect.ValueOf(t).MethodByName(method.Name).Call(nil)
 			
-			for _, handler := range handlers[0].Interface().([]any) {
-				reflect.ValueOf(handler).MethodByName("Boot").Call([]reflect.Value{
-					reflect.ValueOf(g.Server),
-				})
+			for _, instance := range execMethod[0].Interface().([]any) {
+				g.registerHandler(instance)
 			}
 		}
+	} else {
+		reflect.ValueOf(t).MethodByName("Boot").Call([]reflect.Value{
+			reflect.ValueOf(g.Server),
+		})
 	}
 }
 
 func (g *Grpc) Run(address string) {
-		listener, err := net.Listen("tcp", address)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		app.Log.Error(err.Error())
 	}

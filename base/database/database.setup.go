@@ -1,21 +1,31 @@
 package database
 
 import (
+	"context"
+
 	"github.com/backend-timedoor/gtimekeeper/app"
 	"github.com/backend-timedoor/gtimekeeper/base/contracts"
 	"github.com/backend-timedoor/gtimekeeper/base/database/drivers"
+	"github.com/backend-timedoor/gtimekeeper/utils/database"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/gorm"
 )
 
 
-func BootDatabase() *gorm.DB {
+func BootDatabase() *database.Database {
 	driver := GetDatabaseDriver()
 	
 	g, _ := gorm.Open(driver.GetGormDialect(), &gorm.Config{
 		// Logger: logger.Default.LogMode(logger.Info),
 	})
 
-	return g
+	m, _ := mongo.Connect(context.TODO(), options.Client().ApplyURI(app.Config.GetString("database.mongo")))
+
+	return &database.Database{
+		DB: g,
+		Mongo: m,
+	}
 }
 
 func GetDatabaseDriver() contracts.DatabaseDriver {
@@ -27,6 +37,6 @@ func GetDatabaseDriver() contracts.DatabaseDriver {
 	case "pgsql":
 		return &drivers.PgsqlDriver{}
 	default:
-		panic("Database driver not found")
+		panic("Database driver not found use mysql or pgsql")
 	}
 }

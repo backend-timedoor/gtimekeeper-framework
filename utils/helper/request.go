@@ -7,7 +7,7 @@ import (
 )
 
 func MapAndValidate(c echo.Context, model any, request any) error {
-	if err := Validation(c, request); err != nil {
+	if err := Validate(c, request); err != nil {
 		return err
 	}
 
@@ -16,9 +16,9 @@ func MapAndValidate(c echo.Context, model any, request any) error {
 	return nil
 }
 
-func Validation(c echo.Context, request any) error {
+func Validate(c echo.Context, request any) error {
 	if err := c.Bind(&request); err != nil {
-		return Response(http.StatusBadRequest, err.Error())
+		return ErrorResponse(http.StatusBadRequest, err.Error())
 	}
 
 	if err := c.Validate(request); err != nil {

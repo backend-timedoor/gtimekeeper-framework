@@ -33,10 +33,8 @@ func (d *MysqlDriver) GetGormDialect() gorm.Dialector {
 
 func (d *MysqlDriver) GetDsn() string {
 	config := app.Config
-
 	pgsql := config.Get("database.mysql").(map[string]any)
 
-	// "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 	return fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		pgsql["host"],
