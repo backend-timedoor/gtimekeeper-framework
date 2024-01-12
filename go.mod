@@ -1,4 +1,4 @@
-module github.com/backend-timedoor/gtimekeeper-framework-framework
+module github.com/backend-timedoor/gtimekeeper-framework
 
 go 1.21.4
 
@@ -19,6 +19,7 @@ require (
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/viper v1.17.0
 	github.com/urfave/cli/v2 v2.25.7
+	go.mongodb.org/mongo-driver v1.13.1
 	golang.org/x/crypto v0.14.0
 	google.golang.org/grpc v1.58.2
 	gorm.io/driver/mysql v1.5.2
@@ -72,7 +73,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	go.mongodb.org/mongo-driver v1.13.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
