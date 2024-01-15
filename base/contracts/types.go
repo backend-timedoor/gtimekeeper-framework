@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/app/email"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/hibiken/asynq"
@@ -105,5 +106,14 @@ type KafkaConsumer interface {
 
 type Kafka interface {
 	Produce(...kafka.Message)
-	// Consume(string, string, kafka.Message)
 }
+
+type Email interface {
+	From() string
+	Content(any) email.Content
+}
+
+type Mail interface {
+	Send(Email, any)
+}
+

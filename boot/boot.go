@@ -11,6 +11,7 @@ func Booting(pvds []contracts.ServiceProvider) {
 	pvds = append(pvds, []contracts.ServiceProvider{
 		&providers.CacheServiceProvider{},
 		&providers.DatabaseServiceProvider{},
+		&providers.MailServiceProvider{},
 	}...)
 
 	for _, provider := range pvds {
