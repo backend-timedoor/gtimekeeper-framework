@@ -51,8 +51,6 @@ func (e Email) Send(c contracts.Email, data any) {
 	)
 
 	em.Send(sender, auth)
-
-	// em.Send("smtp.gmail.com:587", smtp.PlainAuth("", "tmdrbackend.developer@gmail.com", "haqxappaeprqqics", "smtp.gmail.com"))
 }
 
 func (e Email) TemplateBind() (html []byte) {
