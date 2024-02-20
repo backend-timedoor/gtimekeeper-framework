@@ -14,7 +14,7 @@ var (
 )
 
 func GetMigration() *migrate.Migrate {
-	db := database.GetDatabaseDriver()
+	db := database.DBDriverAnchor
 	driver, err := db.GetDriver()
 
 	if err != nil {

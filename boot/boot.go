@@ -1,28 +1,20 @@
 package boot
 
 import (
-	"reflect"
-
 	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper-framework/providers"
+	"github.com/backend-timedoor/gtimekeeper-framework/container"
 )
 
 func Booting(pvds []contracts.ServiceProvider) {
+	container.App = map[string]any{}
 	pvds = append(pvds, []contracts.ServiceProvider{
-		&providers.CacheServiceProvider{},
-		&providers.DatabaseServiceProvider{},
-		&providers.MailServiceProvider{},
+		// &providers.CacheServiceProvider{},
+		// &providers.DatabaseServiceProvider{},
+		// &providers.MailServiceProvider{},
 	}...)
 
 	for _, provider := range pvds {
 		provider.Register()
-		r := reflect.TypeOf(provider).Elem()
-		if (r.Name() == "ConfigServiceProvider") {
-			log := providers.LogServiceProvider{}
-			log.Register()
-			log.Boot()
-		}
-
 		provider.Boot()
 	}
 }

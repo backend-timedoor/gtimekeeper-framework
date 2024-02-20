@@ -3,70 +3,179 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
+	"os"
+	"strconv"
 	"strings"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/app"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	"github.com/backend-timedoor/gtimekeeper-framework/container"
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/helper"
+	"github.com/riferrei/srclient"
 	"github.com/segmentio/kafka-go"
 )
 
+const ContainerName string = "kafka"
 
-func BootKafka(topics []string, consumers []contracts.KafkaConsumer) contracts.Kafka {
+type KafkaTopic string
+
+func New(config *Config) *Kafka {
 	fmt.Println("initiate kafka...")
 	// kafka setup
-	stringBroker := app.Config.GetString("kafka.brokers")
-	brokers := strings.Split(stringBroker, ",")
+	brokers := strings.Split(config.Brokers, ",")
 
-	// kafka create topic
-	createTopic(topics, brokers)
+	conn, err := kafka.Dial("tcp", brokers[0])
+	if err != nil {
+		log.Fatalf("failed to dial leader: %v", err)
+	}
+	defer conn.Close()
 
-	// kafka consumer register
-	initConsumer(consumers, brokers)
-
-	fmt.Println("kafka ready to fire...")
-	return &Kafka{
+	k := &Kafka{
+		SchemaRegistryClient: srclient.CreateSchemaRegistryClient(config.SchemaRegistry.Host),
+		Connection:           conn,
 		Writer: kafka.NewWriter(kafka.WriterConfig{
 			Brokers:  brokers,
 			Balancer: &kafka.LeastBytes{},
 		}),
+		Config:  config,
+		Brokers: brokers,
 	}
+
+	k.initTopic(config.Topics, brokers)
+	k.initSchemaRegistry(config.SchemaRegistry)
+	k.initConsumer(config.Consumers, brokers)
+
+	container.Set(ContainerName, k)
+
+	return k
 }
 
-func createTopic(topics []string, brokers []string) {
-	for _, topic := range topics {
-		for _, broker := range brokers {
-			con, err := kafka.DialLeader(context.Background(), "tcp", broker, topic, 0)
-			if err != nil {
-				app.Log.Fatalf("cannot register topic kafka %s broker %s: %v", topic, broker, err)
-			}
+func (k *Kafka) initTopic(topics []Topic, brokers []string) {
+	var topicConfigs []kafka.TopicConfig
 
-			con.Close()
+	for _, t := range topics {
+		partition := 1
+		replication := 1
+
+		if t.Partition != 0 || t.Partition < 0 {
+			partition = t.Partition
 		}
 
+		if t.Replication != 0 || t.Replication < 0 {
+			replication = t.Replication
+		}
+
+		topicConfigs = append(topicConfigs, kafka.TopicConfig{
+			Topic:             string(t.Topic),
+			NumPartitions:     partition,
+			ReplicationFactor: replication,
+		})
 	}
+
+	k.createTopic(topicConfigs)
 
 	fmt.Println("finish register topics kafka")
 }
 
-func initConsumer(consumers []contracts.KafkaConsumer, brokers []string) {
+func (k *Kafka) initSchemaRegistry(schemaRegistry SchemaRegistry) {
+	for _, s := range schemaRegistry.Schemas {
+		schemaBytes, err := os.ReadFile(s.Schema)
+		if err != nil {
+			log.Fatalf("failed to read schema file: %v", err)
+		}
+
+		subject := string(s.Subject + "-value")
+		_, err = k.SchemaRegistryClient.CreateSchema(
+			string(subject),
+			string(schemaBytes),
+			srclient.Avro,
+		)
+		if err != nil {
+			log.Fatalf("failed to create schema: %v", err)
+		}
+
+		_, err = k.SchemaRegistryClient.ChangeSubjectCompatibilityLevel(subject, srclient.None)
+		if err != nil {
+			log.Fatalf("failed to change subject compatibility level: %v", err)
+		}
+	}
+
+	fmt.Println("finish register schema kafka")
+}
+
+func (k *Kafka) initConsumer(consumers []Consumer, brokers []string) {
 	for _, consumer := range consumers {
-		go func() {
-			reader := kafka.NewReader(kafka.ReaderConfig{
-				Brokers:   brokers,
-				GroupID:   consumer.Group(),
-				Topic:     consumer.Topic(),
-			})
-		
-			for {
-				m, err := reader.ReadMessage(context.Background())
-				if err != nil {
-					break
+		configs := consumer.Config()
+
+		for _, config := range *configs {
+			go func(config *ModuleConfig) {
+				var readerConfig kafka.ReaderConfig
+
+				helper.Clone(&readerConfig, &config.Reader)
+
+				if k.Brokers != nil {
+					readerConfig.Brokers = k.Brokers
 				}
-				consumer.Handle(m)
-				// fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
-			}
-		}()
+
+				if k.Config.ConsumerGroupID != "" {
+					readerConfig.GroupID = k.Config.ConsumerGroupID
+				}
+
+				k.readMessage(*config, readerConfig)
+
+			}(&config)
+		}
 	}
 
 	fmt.Println("finish register consumers kafka")
+}
+
+func (k *Kafka) readMessage(consumerConfig ModuleConfig, readerConfig kafka.ReaderConfig) {
+	ctx := context.Background()
+	reader := kafka.NewReader(readerConfig)
+
+	for {
+		m, err := reader.FetchMessage(ctx)
+		if err != nil {
+			fmt.Printf("error fetch message kafka: %v\n", err)
+		}
+
+		schema, err := k.SchemaRegistryClient.GetLatestSchema(k.getSubject(consumerConfig.Reader.Topic))
+		if err != nil {
+			log.Fatalf("failed to get latest schema %v", err)
+		}
+
+		native, _, _ := schema.Codec().NativeFromBinary(m.Value)
+		value, _ := schema.Codec().TextualFromNative(nil, native)
+
+		m.Value = value
+
+		if k.Config.AutoCommitOffset {
+			if err := consumerConfig.Handle(ctx, m, reader); err != nil {
+				fmt.Printf("error handling: %v\n", err)
+			} else {
+				reader.CommitMessages(context.Background(), m)
+			}
+		} else {
+			consumerConfig.Handle(ctx, m, reader)
+		}
+	}
+}
+
+func (k *Kafka) createTopic(topicConfigs []kafka.TopicConfig) {
+	controller, err := k.Connection.Controller()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	var controllerConn *kafka.Conn
+	controllerConn, err = kafka.Dial("tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	defer controllerConn.Close()
+
+	err = controllerConn.CreateTopics(topicConfigs...)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 }

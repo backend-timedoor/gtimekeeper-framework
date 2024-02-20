@@ -3,9 +3,7 @@ package contracts
 import (
 	"context"
 	"database/sql"
-	"time"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/utils/app/email"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/hibiken/asynq"
@@ -31,7 +29,7 @@ type Config interface {
 type Server interface {
 	Grpc() ServerHandle
 	Http() ServerHandle
-	RegisterCustomeValidation([]Validation)
+	RegisterCustomeValidation([]CustomeValidation)
 }
 
 type ServerHandle interface {
@@ -46,23 +44,6 @@ type Commands interface {
 	Handle(*cli.Context) error
 }
 
-type Cache interface {
-	Push(string, any) error
-	Retrieve(string) []string
-	Remove(string, int)
-	Pop(string) []string
-	Get(string, any) any
-	Has(string) bool
-	Set(string, any, time.Duration) error
-	Pull(string, any) any
-	Add(string, any, time.Duration) bool
-	Remember(string, time.Duration, func() any) (any, error)
-	RememberForever(string, func() any) (any, error)
-	Forever(string, any) bool
-	Forget(string) bool
-	Flush() bool
-}
-
 type DatabaseDriver interface {
 	GetConnection() string
 	GetSqlDb() *sql.DB
@@ -72,48 +53,23 @@ type DatabaseDriver interface {
 }
 
 type Queue interface {
-	Job(job Job, args any)
-	Run()
-}
-
-type Job interface {
 	Signature() string
 	Options() []asynq.Option
 	Handle(context.Context, *asynq.Task) error
 }
 
 type Schedule interface {
-	Run()
-	Stop()
-}
-
-type ScheduleEvent interface {
 	Signature() string
+	Options() []asynq.Option
 	Schedule() string
-	Handle()
+	Handle(context.Context, *asynq.Task) error
 }
 
-type Validation interface {
+type CustomeValidation interface {
 	Signature() string
 	Handle(validator.FieldLevel) bool
 }
 
-type KafkaConsumer interface {
-	Topic() string
-	Group() string
-	Handle(kafka.Message)
-}
-
 type Kafka interface {
-	Produce(...kafka.Message)
+	Produce(context.Context, ...kafka.Message) error
 }
-
-type Email interface {
-	From() string
-	Content(any) email.Content
-}
-
-type Mail interface {
-	Send(Email, any)
-}
-

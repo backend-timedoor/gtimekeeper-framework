@@ -4,14 +4,19 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/golang-migrate/migrate/v4/database"
 	pg "github.com/golang-migrate/migrate/v4/database/postgres"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-type PgsqlDriver struct{}
+type PgsqlDriver struct {
+	Host     string
+	Username string
+	Password string
+	Database string
+	Port     int
+}
 
 func (d *PgsqlDriver) GetConnection() string {
 	return "postgres"
@@ -32,16 +37,13 @@ func (d *PgsqlDriver) GetGormDialect() gorm.Dialector {
 }
 
 func (d *PgsqlDriver) GetDsn() string {
-	config := app.Config
-	pgsql := config.Get("database.pgsql").(map[string]any)
-
 	// "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		pgsql["host"],
-		pgsql["username"],
-		pgsql["password"],
-		pgsql["database"],
-		pgsql["port"],
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		d.Host,
+		d.Username,
+		d.Password,
+		d.Database,
+		d.Port,
 	)
 }

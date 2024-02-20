@@ -1,4 +1,4 @@
-package cache
+package redis
 
 import (
 	"encoding/json"
@@ -9,13 +9,12 @@ import (
 )
 
 type Redis struct {
-	Redis *redis.Client
+	Redis  *redis.Client
 	Prefix string
 }
 
 func (r *Redis) Push(key string, value any) error {
-	encode, _ := json.Marshal(&value)
-	err := r.Redis.RPush(r.getKey(key), encode).Err()
+	err := r.Redis.RPush(r.getKey(key), value).Err()
 	if err != nil {
 		return err
 	}

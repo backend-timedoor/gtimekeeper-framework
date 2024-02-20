@@ -3,13 +3,12 @@ package server
 import (
 	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/server/servers"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation/custom"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/validation"
 )
 
 type Server struct {
-	Servers map[string]any
-	Validation *validation.CustomeValidation
+	Servers    map[string]any
+	Validation *validation.Validation
 }
 
 func (s *Server) Grpc() contracts.ServerHandle {
@@ -23,12 +22,6 @@ func (s *Server) Http() contracts.ServerHandle {
 	return server
 }
 
-func (s *Server) RegisterCustomeValidation(validations []contracts.Validation) {
-	validations	= append(validations, []contracts.Validation{
-		&custom.UniqueValidator{},
-	}...)
-
-	for _, validation := range validations {
-		s.Validation.Validator.RegisterValidation(validation.Signature(), validation.Handle)
-	}
+func (s *Server) RegisterCustomeValidation(validations []contracts.CustomeValidation) {
+	s.Validation.RegisterCustomeValidation(validations)
 }

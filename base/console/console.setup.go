@@ -3,12 +3,12 @@ package console
 import (
 	"os"
 
-	cmd "github.com/backend-timedoor/gtimekeeper-framework/base/console/commands"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
+	cmd "github.com/backend-timedoor/gtimekeeper-framework/base/database/commands"
 	"github.com/urfave/cli/v2"
 )
 
-func BootConsole(commands []contracts.Commands) {
+func New(commands []contracts.Commands) {
 	c := &cli.App{}
 
 	c.Name = "GTime Keeper Project"

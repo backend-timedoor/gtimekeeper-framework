@@ -3,12 +3,14 @@ package server
 import (
 	"reflect"
 
+	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/server/validation"
+	"github.com/backend-timedoor/gtimekeeper-framework/container"
 )
 
+const ContainerName string = "server"
 
-func BootServer(servers []contracts.ServerHandle) contracts.Server {
+func New(servers []contracts.ServerHandle) contracts.Server {
 	s := &Server{}
 	serverBag := map[string]any{}
 
@@ -20,7 +22,9 @@ func BootServer(servers []contracts.ServerHandle) contracts.Server {
 	}
 
 	s.Servers = serverBag
-	s.Validation = validation.BootCustomValidation()
+	s.Validation = app.Validation
+
+	container.Set(ContainerName, s)
 
 	return s
 }

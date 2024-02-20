@@ -4,14 +4,19 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"github.com/golang-migrate/migrate/v4/database"
-	my "github.com/golang-migrate/migrate/v4/database/postgres"
+	my "github.com/golang-migrate/migrate/v4/database/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-type MysqlDriver struct{}
+type MysqlDriver struct {
+	Host     string
+	Username string
+	Password string
+	Database string
+	Port     int
+}
 
 func (d *MysqlDriver) GetConnection() string {
 	return "mysql"
@@ -32,15 +37,12 @@ func (d *MysqlDriver) GetGormDialect() gorm.Dialector {
 }
 
 func (d *MysqlDriver) GetDsn() string {
-	config := app.Config
-	pgsql := config.Get("database.mysql").(map[string]any)
-
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		pgsql["host"],
-		pgsql["username"],
-		pgsql["password"],
-		pgsql["database"],
-		pgsql["port"],
+		"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+		d.Username,
+		d.Password,
+		d.Host,
+		d.Port,
+		d.Database,
 	)
 }

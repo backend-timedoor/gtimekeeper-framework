@@ -1,42 +1,73 @@
 package database
 
 import (
-	"context"
+	"database/sql"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/app"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
-	"github.com/backend-timedoor/gtimekeeper-framework/base/database/drivers"
-	"github.com/backend-timedoor/gtimekeeper-framework/utils/app/database"
+	bm "github.com/backend-timedoor/gtimekeeper-framework/base/database/mongo"
+	"github.com/backend-timedoor/gtimekeeper-framework/base/database/redis"
+	"github.com/backend-timedoor/gtimekeeper-framework/container"
+	db "github.com/golang-migrate/migrate/v4/database"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/gorm"
 )
 
+const ContainerName string = "db"
 
-func BootDatabase() *database.Database {
-	driver := GetDatabaseDriver()
-	
-	g, _ := gorm.Open(driver.GetGormDialect(), &gorm.Config{
-		// Logger: logger.Default.LogMode(logger.Info),
-	})
+var DBDriverAnchor DatabaseDriver
 
-	m, _ := mongo.Connect(context.TODO(), options.Client().ApplyURI(app.Config.GetString("database.mongo")))
-
-	return &database.Database{
-		DB: g,
-		Mongo: m,
-	}
+type Database struct {
+	*gorm.DB
+	Mongo  *mongo.Client
+	Redis  *redis.Redis
+	Config *Config
 }
 
-func GetDatabaseDriver() contracts.DatabaseDriver {
-	config := app.Config
+type DatabaseDriver interface {
+	GetConnection() string
+	GetSqlDb() *sql.DB
+	GetDriver() (db.Driver, error)
+	GetGormDialect() gorm.Dialector
+	GetDsn() string
+}
 
-	switch config.Get("database.connection") {
-	case "mysql":
-		return &drivers.MysqlDriver{}
-	case "pgsql":
-		return &drivers.PgsqlDriver{}
-	default:
-		panic("Database driver not found use mysql or pgsql")
+type Config struct {
+	Driver     DatabaseDriver
+	GormConfig *gorm.Config
+	Mongo      string
+	Redis      *redis.Config
+}
+
+func New(config *Config) *Database {
+	DBDriverAnchor = config.Driver
+	var (
+		err error
+		db  = &Database{
+			Config: config,
+		}
+		l = container.Log()
+	)
+
+	db.DB, err = gorm.Open(config.Driver.GetGormDialect(), config.GormConfig)
+	if err != nil {
+		l.Infof("Error connecting to database: %s", err.Error())
 	}
+
+	if config.Mongo != "" {
+		db.Mongo, err = bm.New(config.Mongo)
+		if err != nil {
+			l.Infof("Error connecting to MongoDB: %s", err.Error())
+		}
+	}
+
+	if config.Redis != nil {
+		db.Redis, err = redis.New(config.Redis)
+		if err != nil {
+			l.Infof("Error connecting to Redis: %s", err.Error())
+		}
+
+	}
+
+	container.Set(ContainerName, db)
+
+	return db
 }

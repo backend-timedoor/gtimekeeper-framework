@@ -18,10 +18,10 @@ type PaginationResponse struct {
 }
 
 type Pagination struct {
-	CurrentPage  int `json:"current_page"`
-	LastPage     int `json:"last_page"`
-	Total  		 int `json:"total"`
-	PerPage      int `json:"per_page"`
+	CurrentPage int `json:"current_page"`
+	LastPage    int `json:"last_page"`
+	Total       int `json:"total"`
+	PerPage     int `json:"per_page"`
 }
 
 func (r *PaginationRequest) GetPaginationRequest() error {

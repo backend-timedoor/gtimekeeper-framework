@@ -1,10 +1,10 @@
-package configuration
+package config
 
 import "github.com/spf13/cast"
 
 // Env Get config from env.
-func (app *ApplicationConfig) Env(envName string, defaultValue ...any) any {
-	value := app.Get(envName, defaultValue...)
+func (c *Config) Env(envName string, defaultValue ...any) any {
+	value := c.Get(envName, defaultValue...)
 	if cast.ToString(value) == "" {
 		if len(defaultValue) > 0 {
 			return defaultValue[0]
@@ -17,25 +17,25 @@ func (app *ApplicationConfig) Env(envName string, defaultValue ...any) any {
 }
 
 // Add config to application.
-func (app *ApplicationConfig) Add(name string, configuration any) {
-	app.vip.Set(name, configuration)
+func (c *Config) Add(name string, configuration any) {
+	c.vp.Set(name, configuration)
 }
 
 // Get config from application.
-func (app *ApplicationConfig) Get(path string, defaultValue ...any) any {
-	if !app.vip.IsSet(path) {
+func (c *Config) Get(path string, defaultValue ...any) any {
+	if !c.vp.IsSet(path) {
 		if len(defaultValue) > 0 {
 			return defaultValue[0]
 		}
 		return nil
 	}
 
-	return app.vip.Get(path)
+	return c.vp.Get(path)
 }
 
 // GetString Get string type config from application.
-func (app *ApplicationConfig) GetString(path string, defaultValue ...any) string {
-	value := cast.ToString(app.Get(path, defaultValue...))
+func (c *Config) GetString(path string, defaultValue ...any) string {
+	value := cast.ToString(c.Get(path, defaultValue...))
 	if value == "" {
 		if len(defaultValue) > 0 {
 			return defaultValue[0].(string)
@@ -48,8 +48,8 @@ func (app *ApplicationConfig) GetString(path string, defaultValue ...any) string
 }
 
 // GetInt Get int type config from application.
-func (app *ApplicationConfig) GetInt(path string, defaultValue ...any) int {
-	value := app.Get(path, defaultValue...)
+func (c *Config) GetInt(path string, defaultValue ...any) int {
+	value := c.Get(path, defaultValue...)
 	if cast.ToString(value) == "" {
 		if len(defaultValue) > 0 {
 			return defaultValue[0].(int)
@@ -62,8 +62,8 @@ func (app *ApplicationConfig) GetInt(path string, defaultValue ...any) int {
 }
 
 // GetBool Get bool type config from application.
-func (app *ApplicationConfig) GetBool(path string, defaultValue ...any) bool {
-	value := app.Get(path, defaultValue...)
+func (c *Config) GetBool(path string, defaultValue ...any) bool {
+	value := c.Get(path, defaultValue...)
 	if cast.ToString(value) == "" {
 		if len(defaultValue) > 0 {
 			return defaultValue[0].(bool)
