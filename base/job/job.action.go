@@ -49,33 +49,29 @@ func (j *Job) RegisterQueue(queues []contracts.Queue) {
 }
 
 func (j *Job) RegisterSchedule(schedules []contracts.Schedule) {
-	if len(schedules) > 0 {
-		for _, schedule := range schedules {
-			// check signature
-			if j.containSignature(schedule.Signature()) {
-				log.Fatalf("job with signature %s is already exists", schedule.Signature())
-			}
-
-			// register scheduler
-			_, err := j.scheduler.Register(
-				schedule.Schedule(),
-				asynq.NewTask(schedule.Signature(), nil),
-				schedule.Options()...,
-			)
-
-			j.mux.HandleFunc(schedule.Signature(), schedule.Handle)
-
-			if err != nil {
-				log.Fatalf("cannot register schedule %s: %v", schedule.Signature(), err)
-			}
-
-			err = j.cache.Push(CACHE_KEY, schedule.Signature())
-			if err != nil {
-				log.Fatalf("cannot register schedule %s: %v", schedule.Signature(), err)
-			}
+	for _, schedule := range schedules {
+		// check signature
+		if j.containSignature(schedule.Signature()) {
+			log.Fatalf("job with signature %s is already exists", schedule.Signature())
 		}
 
-		j.scheduler.Start()
+		// register scheduler
+		_, err := j.scheduler.Register(
+			schedule.Schedule(),
+			asynq.NewTask(schedule.Signature(), nil),
+			schedule.Options()...,
+		)
+
+		j.mux.HandleFunc(schedule.Signature(), schedule.Handle)
+
+		if err != nil {
+			log.Fatalf("cannot register schedule %s: %v", schedule.Signature(), err)
+		}
+
+		err = j.cache.Push(CACHE_KEY, schedule.Signature())
+		if err != nil {
+			log.Fatalf("cannot register schedule %s: %v", schedule.Signature(), err)
+		}
 	}
 }
 
@@ -108,6 +104,10 @@ func (j *Job) Queue(job contracts.Queue, args any) error {
 }
 
 func (j *Job) Run() error {
+	if err := j.scheduler.Run(); err != nil {
+		return fmt.Errorf("could not run scheduler: %v", err)
+	}
+
 	if err := j.server.Start(j.mux); err != nil {
 		return fmt.Errorf("could not run server: %v", err)
 	}
