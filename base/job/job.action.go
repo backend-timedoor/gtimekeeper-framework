@@ -104,7 +104,7 @@ func (j *Job) Queue(job contracts.Queue, args any) error {
 }
 
 func (j *Job) Run() error {
-	if err := j.scheduler.Run(); err != nil {
+	if err := j.scheduler.Start(); err != nil {
 		return fmt.Errorf("could not run scheduler: %v", err)
 	}
 
