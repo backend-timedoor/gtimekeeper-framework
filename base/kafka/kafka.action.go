@@ -25,7 +25,6 @@ type Topic struct {
 
 type Consumer interface {
 	Config() *[]ModuleConfig
-	Handle(context.Context, kafka.Message, *kafka.Reader) error
 }
 
 type Schema struct {

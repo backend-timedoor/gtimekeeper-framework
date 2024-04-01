@@ -41,16 +41,16 @@ func New(config *Config) *Kafka {
 		Brokers: brokers,
 	}
 
-	k.initTopic(config.Topics, brokers)
+	k.initTopic(config.Topics)
 	k.initSchemaRegistry(config.SchemaRegistry)
-	k.initConsumer(config.Consumers, brokers)
+	k.initConsumer(config.Consumers)
 
 	container.Set(ContainerName, k)
 
 	return k
 }
 
-func (k *Kafka) initTopic(topics []Topic, brokers []string) {
+func (k *Kafka) initTopic(topics []Topic) {
 	var topicConfigs []kafka.TopicConfig
 
 	for _, t := range topics {
@@ -103,27 +103,23 @@ func (k *Kafka) initSchemaRegistry(schemaRegistry SchemaRegistry) {
 	fmt.Println("finish register schema kafka")
 }
 
-func (k *Kafka) initConsumer(consumers []Consumer, brokers []string) {
+func (k *Kafka) initConsumer(consumers []Consumer) {
 	for _, consumer := range consumers {
 		configs := consumer.Config()
 
 		for _, config := range *configs {
-			go func(config *ModuleConfig) {
-				var readerConfig kafka.ReaderConfig
+			var readerConfig kafka.ReaderConfig
+			helper.Clone(&readerConfig, &config.Reader)
 
-				helper.Clone(&readerConfig, &config.Reader)
+			if k.Brokers != nil {
+				readerConfig.Brokers = k.Brokers
+			}
 
-				if k.Brokers != nil {
-					readerConfig.Brokers = k.Brokers
-				}
+			if k.Config.ConsumerGroupID != "" {
+				readerConfig.GroupID = k.Config.ConsumerGroupID
+			}
 
-				if k.Config.ConsumerGroupID != "" {
-					readerConfig.GroupID = k.Config.ConsumerGroupID
-				}
-
-				k.readMessage(*config, readerConfig)
-
-			}(&config)
+			go k.readMessage(config, readerConfig)
 		}
 	}
 
@@ -134,30 +130,31 @@ func (k *Kafka) readMessage(consumerConfig ModuleConfig, readerConfig kafka.Read
 	ctx := context.Background()
 	reader := kafka.NewReader(readerConfig)
 
+	defer reader.Close()
+
 	for {
 		m, err := reader.FetchMessage(ctx)
 		if err != nil {
 			fmt.Printf("error fetch message kafka: %v\n", err)
+			break
 		}
 
 		schema, err := k.SchemaRegistryClient.GetLatestSchema(k.getSubject(consumerConfig.Reader.Topic))
 		if err != nil {
 			log.Fatalf("failed to get latest schema %v", err)
 		}
-
-		native, _, _ := schema.Codec().NativeFromBinary(m.Value)
+		native, _, _ := schema.Codec().NativeFromBinary(m.Value[5:])
 		value, _ := schema.Codec().TextualFromNative(nil, native)
 
 		m.Value = value
 
-		if k.Config.AutoCommitOffset {
-			if err := consumerConfig.Handle(ctx, m, reader); err != nil {
-				fmt.Printf("error handling: %v\n", err)
-			} else {
-				reader.CommitMessages(context.Background(), m)
+		err = consumerConfig.Handle(ctx, m, reader)
+		if err != nil {
+			fmt.Printf("error handling: %v\n", err)
+		} else if k.Config.AutoCommitOffset {
+			if err := reader.CommitMessages(context.Background(), m); err != nil {
+				fmt.Printf("error commit message: %v\n", err)
 			}
-		} else {
-			consumerConfig.Handle(ctx, m, reader)
 		}
 	}
 }
