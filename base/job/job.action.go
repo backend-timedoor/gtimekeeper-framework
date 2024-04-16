@@ -9,7 +9,6 @@ import (
 	"github.com/backend-timedoor/gtimekeeper-framework/base/contracts"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/database/redis"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/job/custom"
-	"github.com/backend-timedoor/gtimekeeper-framework/container"
 	"github.com/hibiken/asynq"
 )
 
@@ -40,7 +39,7 @@ func (j *Job) RegisterQueue(queues []contracts.Queue) {
 			log.Fatalf("job with signature %s is already exists", queue.Signature())
 		}
 
-		// register queue
+		j.mux.HandleFunc(queue.Signature(), queue.Handle)
 		err := j.cache.Push(CACHE_KEY, queue.Signature())
 		if err != nil {
 			log.Fatalf("cannot register queue %s: %v", queue.Signature(), err)
@@ -95,10 +94,6 @@ func (j *Job) Queue(job contracts.Queue, args any) error {
 	if err != nil {
 		return fmt.Errorf("queue %s client error enqueue error: %v", job.Signature(), err)
 	}
-
-	j.mux.HandleFunc(job.Signature(), job.Handle)
-	j.cache.Push(CACHE_KEY, job.Signature())
-	container.Log().Infof("task added %s", job.Signature())
 
 	return nil
 }
