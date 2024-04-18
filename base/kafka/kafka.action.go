@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 
 	"github.com/riferrei/srclient"
@@ -61,15 +62,27 @@ func (k *Kafka) Produce(ctx context.Context, msgs ...kafkaPkg.Message) error {
 			return fmt.Errorf("failed to get latest schema %v", err)
 		}
 
-		native, _, _ := schema.Codec().NativeFromTextual(msg.Value)
+		schemaIDBytes := make([]byte, 4)
+		binary.BigEndian.PutUint32(schemaIDBytes, uint32(schema.ID()))
+
+		native, _, err := schema.Codec().NativeFromTextual(msg.Value)
+		if err != nil {
+			return fmt.Errorf("failed to convert value to native %v", err)
+		}
+
 		valueBytes, err := schema.Codec().BinaryFromNative(nil, native)
 		if err != nil {
 			return fmt.Errorf("failed to convert value to binary %v", err)
 		}
 
+		var recordValue []byte
+		recordValue = append(recordValue, byte(0))
+		recordValue = append(recordValue, schemaIDBytes...)
+		recordValue = append(recordValue, valueBytes...)
+
 		mapNewMessage = append(mapNewMessage, kafkaPkg.Message{
 			Key:   msg.Key,
-			Value: valueBytes,
+			Value: recordValue,
 			Topic: msg.Topic,
 		})
 
