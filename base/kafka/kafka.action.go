@@ -54,7 +54,6 @@ type ModuleConfig struct {
 }
 
 func (k *Kafka) Produce(ctx context.Context, msgs ...kafkaPkg.Message) error {
-	errChan := make(chan error, 1)
 	var mapNewMessage []kafkaPkg.Message
 	for _, msg := range msgs {
 		schema, err := k.SchemaRegistryClient.GetLatestSchema(k.getSubject(msg.Topic))
@@ -88,16 +87,12 @@ func (k *Kafka) Produce(ctx context.Context, msgs ...kafkaPkg.Message) error {
 
 	}
 
-	go func(errChan chan error) {
-		err := k.Writer.WriteMessages(ctx, mapNewMessage...)
-		if err != nil {
-			errChan <- fmt.Errorf("failed to write messages %v", err)
-		}
+	err := k.Writer.WriteMessages(ctx, mapNewMessage...)
+	if err != nil {
+		return fmt.Errorf("failed to write message %v", err)
+	}
 
-		close(errChan)
-	}(errChan)
-
-	return <-errChan
+	return nil
 }
 
 func (k *Kafka) getSubject(topic string) string {

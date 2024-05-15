@@ -43,8 +43,14 @@ func (v *Validation) GValidate(i interface{}) map[string]any {
 
 	if err := v.Validator.Struct(i); err != nil {
 		for _, e := range err.(validator.ValidationErrors) {
+			k := strings.Join(strings.Split(e.Namespace(), ".")[1:], ".")
+			if strings.Contains(k, "[") && strings.Contains(k, "]") {
+				k = strings.Replace(k, "[", ".", -1)
+				k = strings.Replace(k, "]", "", -1)
+			}
+
 			message := fmt.Sprintf("The %s field is %s", e.Field(), e.ActualTag())
-			messageBag[strings.ToLower(e.Field())] = message
+			messageBag[k] = message
 		}
 
 		return map[string]any{
