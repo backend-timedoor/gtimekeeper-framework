@@ -6,12 +6,25 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"reflect"
+	"strings"
 )
 
 const ContainerName string = "validation"
 
 func New() *Validation {
-	v := &Validation{Validator: validator.New()}
+	validator_ := validator.New()
+	validator_.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
+	v := &Validation{Validator: validator_}
 	en := en.New()
 	uni := ut.New(en, en)
 	trans, _ := uni.GetTranslator("en")
