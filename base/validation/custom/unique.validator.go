@@ -1,28 +1,57 @@
 package custom
 
 import (
-	"github.com/go-playground/validator/v10"
+    "fmt"
+    "github.com/backend-timedoor/gtimekeeper-framework/base/database"
+    "github.com/backend-timedoor/gtimekeeper-framework/container"
+    "github.com/go-playground/validator/v10"
+    "strings"
+    "time"
 )
 
 type UniqueValidator struct{}
 
 func (u *UniqueValidator) Signature() string {
-	return "example"
+    return "unique"
 }
 
 func (u *UniqueValidator) Handle(fl validator.FieldLevel) bool {
-	// tagParts := strings.Split(fl.Param(), ":")
+    params := strings.Split(fl.Param(), ".")
+    fieldValue := fl.Field().String()
+    if len(params) < 2 {
+        return true
+    }
 
-	// if len(tagParts) != 2 {
-	// 	return false
-	// }
+    tableName, fieldName := params[0], params[1]
+    var excludeID, excludeCol string
+    if len(params) >= 4 {
+        excludeID, excludeCol = params[2], params[3]
+    }
+    var excludeVal int64
+    if excludeID != "" {
+        excludeVal = fl.Parent().FieldByName(excludeID).Int()
+    }
 
-	// tableName := tagParts[0]
-	// fieldName := tagParts[1]
-	// fieldValue := fl.Field().String()
+    var record struct {
+        ID        int32
+        DeletedAt time.Time
+    }
+    db := container.Get(database.ContainerName).(*database.Database)
+    query := db.DB.Table(tableName).
+        Order("id desc").
+        Where(fmt.Sprintf("%s = ?", fieldName), fieldValue)
+    if excludeCol != "" && excludeVal != 0 {
+        query = query.Where(fmt.Sprintf("%s != ?", excludeCol), excludeVal)
+    }
+    query.First(&record)
 
-	// var count int64
-	// app.DB.Table(tableName).Where(fieldName+" = ?", fieldValue).Count(&count)
+    if record.ID == 0 {
+        return true
+    }
 
-	return true
+    if !record.DeletedAt.IsZero() {
+        return true
+    }
+
+    return false
 }
