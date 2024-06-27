@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/urfave/cli/v2"
@@ -19,8 +20,9 @@ func (m *MigrationUpCommand) Flags() []cli.Flag {
 }
 
 func (m *MigrationUpCommand) Handle(c *cli.Context) (err error) {
+	start := time.Now()
 	step := c.Int("step")
-	migration := GetMigration()
+	migration := GetMigration("up")
 
 	if step > 0 {
 		err = migration.Steps(step)
@@ -32,7 +34,9 @@ func (m *MigrationUpCommand) Handle(c *cli.Context) (err error) {
 		log.Fatal("failted to run migration:", err)
 	}
 
-	fmt.Println("database migrated successfully")
+	duration := time.Since(start).Seconds() * 1000
+
+	fmt.Print(DotMessage("Migration up successfully", duration))
 
 	return nil
 }

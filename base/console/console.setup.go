@@ -18,6 +18,8 @@ func New(commands []contracts.Commands) {
 		&cmd.MigrationCreateCommand{},
 		&cmd.MigrationUpCommand{},
 		&cmd.MigrationDownCommand{},
+		&cmd.MigrationFreshCommand{},
+		&cmd.MigrationForceCommand{},
 	}...)
 
 	for _, command := range commands {

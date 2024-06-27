@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/helper"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,40 +27,54 @@ func (m *MigrationCreateCommand) Flags() []cli.Flag {
 }
 
 func (m *MigrationCreateCommand) Handle(c *cli.Context) error {
+	start := time.Now()
 	name := "create_table"
 
-	if  c.NArg() >= 1 {
+	if c.NArg() >= 1 {
 		name = c.Args().First()
 	} else if c.String("name") != "" {
 		name = c.String("name")
 	}
 
-	// fmt.Println(c.Args(), c.Args().Slice(), c.NArg())
-
 	createCmd(name)
+
+	duration := time.Since(start).Seconds() * 1000
+
+	fmt.Print(DotMessage("Migration created", duration))
 
 	return nil
 }
 
 func createCmd(name string) error {
 	var err error
-	dir := filepath.Clean("database/migrations")
+	baseDir := filepath.Clean("database/migrations")
 
-	// create dir
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+	// Create the base directory if it doesn't exist
+	if err = os.MkdirAll(baseDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	for _, direction := range []string{"up", "down"} {
-		basename := generateName(name, direction)
-		filename := filepath.Join(dir, basename)
+	// Define migration directions
+	directions := []string{"up", "down"}
 
-		if err = createFile(direction, filename, name); err != nil {
+	// Loop through the directions and create directories for each
+	for _, direction := range directions {
+		basename := generateName(name, direction)
+		directionPath := filepath.Join(baseDir, direction)
+		dirPath := filepath.Join(directionPath, basename)
+
+		// Create the direction-specific directory
+		if err = os.MkdirAll(directionPath, os.ModePerm); err != nil {
 			return err
 		}
 
-		// absPath, _ := filepath.Abs(filename)
-		log.Println(basename)
+		if err = createFile(direction, dirPath, name); err != nil {
+			return err
+		}
+
+		// Print the name of the created file
+		message := fmt.Sprintf("[%s] %s created successfully", dirPath, direction)
+		log.Println(message)
 	}
 
 	return nil
@@ -69,9 +84,9 @@ func generateName(name string, direction string) string {
 	format := DefaultTimeFormat
 	startTime := time.Now()
 	version := startTime.Format(format)
-	ext := "." + strings.TrimPrefix(EXTENTION, ".")
+	ext := strings.TrimPrefix(EXTENTION, ".")
 
-	return fmt.Sprintf("%s_%s.%s%s", version, name, direction, ext)
+	return fmt.Sprintf("%s_%s.%s.%s", version, name, direction, ext)
 }
 
 func createFile(direction string, filename string, nameArg string) error {
@@ -118,11 +133,13 @@ func downStatement(file *os.File, table string) {
 func extractTableName(filename string) string {
 	parts := strings.Split(filename, "_")
 
-	if len(parts) > 1 && parts[0] == "create" && parts[1] == "table" {
-		return strings.Join(parts[2:], "_")
+	// Ensure there are at least three parts: "create", "<TableName>", "table"
+	if len(parts) >= 3 && parts[0] == "create" && parts[len(parts)-1] == "table" {
+		tableName := strings.Join(parts[1:len(parts)-1], "_")
+		return helper.Pluralize(tableName)
 	}
 
-	return "table"
+	return "tables"
 }
 
 func extractAction(input string) string {

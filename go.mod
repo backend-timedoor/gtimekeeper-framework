@@ -22,6 +22,7 @@ require (
 	github.com/urfave/cli/v2 v2.25.7
 	go.mongodb.org/mongo-driver v1.13.1
 	golang.org/x/crypto v0.14.0
+	golang.org/x/term v0.13.0
 	google.golang.org/grpc v1.58.2
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/driver/postgres v1.5.4
