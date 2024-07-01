@@ -16,9 +16,7 @@ func SuccessResponse(c echo.Context, code int, data any) error {
 }
 
 func ErrorResponse(code int, err any) error {
-	return echo.NewHTTPError(code, Resp{
-		"message": err,
-	})
+	return echo.NewHTTPError(code, err)
 }
 
 func UnauthenticatedErrorReponse(args ...any) error {

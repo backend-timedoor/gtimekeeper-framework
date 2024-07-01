@@ -19,13 +19,7 @@ func (h *Http) Start() {
 	// h.Server.Use(middleware.Recover())
 }
 
-func (h *Http) Handler() {
-	for _, module := range h.Modules {
-		h.registerHandler(module, h.Server.Group(""))
-	}
-}
-
-func (h *Http) registerHandler(t any, args ...any) {
+func (h *Http) RegisterHandler(t any, args ...any) {
 	var route reflect.Value
 	if len(args) >= 1 {
 		route = reflect.ValueOf(args[0])
@@ -37,11 +31,10 @@ func (h *Http) registerHandler(t any, args ...any) {
 	if !isHandler {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
-
 			execMethod := reflect.ValueOf(t).MethodByName(method.Name).Call([]reflect.Value{route})
 
-			for _, instance := range execMethod[1].Interface().([]any) {
-				h.registerHandler(instance, execMethod[0].Interface())
+			for _, instance := range execMethod[2].Interface().([]any) {
+				h.RegisterHandler(instance, execMethod[1].Interface())
 			}
 		}
 	} else {

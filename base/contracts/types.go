@@ -35,7 +35,6 @@ type Server interface {
 type ServerHandle interface {
 	Start()
 	Run(string)
-	Handler()
 }
 
 type Commands interface {

@@ -59,7 +59,12 @@ func (v *Validation) Check(vType ValidationType, d any, rules map[string]string)
 	resp := &ValidationError{Code: http.StatusUnprocessableEntity}
 	errors := map[string]any{}
 
-	data := helper.ConvertStructToMap(d)
+	// check d type is struct or not if map dont convert to map
+	data := d
+	if reflect.TypeOf(d).Kind() != reflect.Map {
+		data = helper.ConvertStructToMap(d)
+	}
+
 	v.validation(data, rules, "", "", errors)
 
 	if len(errors) > 0 {
@@ -113,29 +118,4 @@ func (v *Validation) validation(d any, rules map[string]string, field string, pr
 
 func (v *Validation) Validate(i any) error {
 	return v.Check(ValidationHttp, i, map[string]string{})
-}
-
-func (v *Validation) GValidate(i any) map[string]any {
-	messageBag := map[string]any{}
-
-	if err := v.Validator.Struct(i); err != nil {
-		for _, e := range err.(validator.ValidationErrors) {
-			k := strings.Join(strings.Split(e.Namespace(), ".")[1:], ".")
-			if strings.Contains(k, "[") && strings.Contains(k, "]") {
-				k = strings.Replace(k, "[", ".", -1)
-				k = strings.Replace(k, "]", "", -1)
-			}
-
-			message := fmt.Sprintf("The %s field is %s", e.Field(), e.ActualTag())
-			messageBag[k] = message
-		}
-
-		return map[string]any{
-			"status":  http.StatusUnprocessableEntity,
-			"message": "Unprocessable Entity",
-			"errors":  messageBag,
-		}
-	}
-
-	return nil
 }

@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Grpc struct{
-	Server *grpc.Server
+type Grpc struct {
+	Server  *grpc.Server
 	Modules []any
 }
 
@@ -18,23 +18,24 @@ func (g *Grpc) Start() {
 	g.Server = grpc.NewServer()
 }
 
-func (g *Grpc) Handler() {
-	for _, module := range g.Modules {
-		g.registerHandler(module)
-	}
-}
+//func (g *Grpc) Handler() {
+//	for _, module := range g.Modules {
+//		g.registerHandler(module)
+//	}
+//}
 
-func (g *Grpc) registerHandler(t any) {
+func (g *Grpc) RegisterHandler(t any) {
 	methods := reflect.TypeOf(t)
 	_, isHandler := methods.MethodByName("Boot")
 
 	if !isHandler {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
+			fmt.Println(method.Name)
 			execMethod := reflect.ValueOf(t).MethodByName(method.Name).Call(nil)
-			
-			for _, instance := range execMethod[0].Interface().([]any) {
-				g.registerHandler(instance)
+
+			for _, instance := range execMethod[1].Interface().([]any) {
+				g.RegisterHandler(instance)
 			}
 		}
 	} else {
