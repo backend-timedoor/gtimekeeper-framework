@@ -36,16 +36,20 @@ type Schema struct {
 
 type SchemaRegistry struct {
 	Host    string
-	Schemas []Schema
+	Schemas *[]Schema
 }
 
 type Config struct {
 	Brokers          string
-	Topics           []Topic
-	Consumers        []Consumer
+	Topics           *[]Topic
+	Consumers        *[]Consumer
 	ConsumerGroupID  string
 	AutoCommitOffset bool
 	SchemaRegistry   SchemaRegistry
+}
+
+type ModuleConfigInterface interface {
+	Boot(topics *[]Topic, schemas *[]Schema, consumers *[]Consumer)
 }
 
 type ModuleConfig struct {

@@ -2,6 +2,7 @@ package validation
 
 import (
 	"github.com/backend-timedoor/gtimekeeper-framework/container"
+	"github.com/backend-timedoor/gtimekeeper-framework/utils/helper/exceptions"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -24,7 +25,10 @@ func New() *Validation {
 		return name
 	})
 
-	v := &Validation{Validator: validator_}
+	v := &Validation{
+		Error:     &exceptions.GTimeError{},
+		Validator: validator_,
+	}
 	en := en.New()
 	uni := ut.New(en, en)
 	trans, _ := uni.GetTranslator("en")

@@ -22,6 +22,6 @@ func (s *Server) Http() contracts.ServerHandle {
 	return server
 }
 
-func (s *Server) RegisterCustomeValidation(validations []contracts.CustomeValidation) {
-	s.Validation.RegisterCustomeValidation(validations)
+func (s *Server) RegisterCustomValidation(validations []contracts.CustomeValidation) {
+	s.Validation.RegisterCustomValidation(validations)
 }

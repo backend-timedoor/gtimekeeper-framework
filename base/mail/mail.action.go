@@ -145,9 +145,8 @@ func (e *Email) templateBind() (html []byte, err error) {
 	if ok {
 		files := reflect.ValueOf(e.c).MethodByName("View").Call([]reflect.Value{})
 
-		file := fmt.Sprintf("%s/%s/%s",
+		file := fmt.Sprintf("%s/%s",
 			e.Config.RootPath,
-			e.Config.TemplatePath,
 			files[0].Interface().(string),
 		)
 

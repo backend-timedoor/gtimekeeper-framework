@@ -38,12 +38,12 @@ func (r *PaginationRequest) GetPaginationRequest() error {
 	return nil
 }
 
-func Paginate(model interface{}, p *Pagination, req *PaginationRequest) func(db *gorm.DB) *gorm.DB {
+func Paginate(model interface{}, p *Pagination, req *PaginationRequest, scope ...func(*gorm.DB) *gorm.DB) func(db *gorm.DB) *gorm.DB {
 	req.GetPaginationRequest()
 
 	offset := (req.Page - 1) * req.Limit
 	var totalData int64
-	app.DB.Model(model).Count(&totalData)
+	app.DB.Model(model).Scopes(scope...).Count(&totalData)
 
 	totalPages := math.Ceil(float64(totalData) / float64(req.Limit))
 	p.LastPage = int(totalPages)
@@ -52,6 +52,6 @@ func Paginate(model interface{}, p *Pagination, req *PaginationRequest) func(db 
 	p.PerPage = req.Limit
 
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(offset).Limit(req.Limit)
+		return db.Scopes(scope...).Offset(offset).Limit(req.Limit)
 	}
 }

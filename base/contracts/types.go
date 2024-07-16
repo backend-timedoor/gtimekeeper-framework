@@ -29,7 +29,7 @@ type Config interface {
 type Server interface {
 	Grpc() ServerHandle
 	Http() ServerHandle
-	RegisterCustomeValidation([]CustomeValidation)
+	RegisterCustomValidation([]CustomeValidation)
 }
 
 type ServerHandle interface {

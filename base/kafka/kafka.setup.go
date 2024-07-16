@@ -50,10 +50,10 @@ func New(config *Config) *Kafka {
 	return k
 }
 
-func (k *Kafka) initTopic(topics []Topic) {
+func (k *Kafka) initTopic(topics *[]Topic) {
 	var topicConfigs []kafka.TopicConfig
 
-	for _, t := range topics {
+	for _, t := range *topics {
 		partition := 1
 		replication := 1
 
@@ -78,7 +78,7 @@ func (k *Kafka) initTopic(topics []Topic) {
 }
 
 func (k *Kafka) initSchemaRegistry(schemaRegistry SchemaRegistry) {
-	for _, s := range schemaRegistry.Schemas {
+	for _, s := range *schemaRegistry.Schemas {
 		schemaBytes, err := os.ReadFile(s.Schema)
 		if err != nil {
 			log.Fatalf("failed to read schema file: %v", err)
@@ -103,8 +103,8 @@ func (k *Kafka) initSchemaRegistry(schemaRegistry SchemaRegistry) {
 	fmt.Println("finish register schema kafka")
 }
 
-func (k *Kafka) initConsumer(consumers []Consumer) {
-	for _, consumer := range consumers {
+func (k *Kafka) initConsumer(consumers *[]Consumer) {
+	for _, consumer := range *consumers {
 		configs := consumer.Config()
 
 		for _, config := range *configs {

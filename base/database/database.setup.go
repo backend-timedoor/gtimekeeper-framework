@@ -17,9 +17,10 @@ var DBDriverAnchor DatabaseDriver
 
 type Database struct {
 	*gorm.DB
-	Mongo  *mongo.Client
-	Redis  *redis.Redis
-	Config *Config
+	WithContext *gorm.DB
+	Mongo       *mongo.Client
+	Redis       *redis.Redis
+	Config      *Config
 }
 
 type DatabaseDriver interface {
@@ -71,3 +72,8 @@ func New(config *Config) *Database {
 
 	return db
 }
+
+//func (d *Database) () *Database {
+//    db, _ := container.Get(ContainerName)
+//    return db.(*Database)
+//}

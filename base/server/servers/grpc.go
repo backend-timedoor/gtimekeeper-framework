@@ -12,10 +12,18 @@ import (
 type Grpc struct {
 	Server  *grpc.Server
 	Modules []any
+	Unary   []grpc.UnaryServerInterceptor
 }
 
 func (g *Grpc) Start() {
-	g.Server = grpc.NewServer()
+	unaries := make([]grpc.ServerOption, len(g.Unary))
+	for i := 0; i < len(g.Unary); i++ {
+		unaries[i] = grpc.UnaryInterceptor(g.Unary[i])
+	}
+
+	g.Server = grpc.NewServer(
+		unaries...,
+	)
 }
 
 //func (g *Grpc) Handler() {
