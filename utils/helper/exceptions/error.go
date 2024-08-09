@@ -50,7 +50,11 @@ func (e *GTimeError) SetCodes(code any) {
 
 func (e *GTimeError) Make(code any, message *ErrorMessage) *GTimeError {
 	e.SetCodes(code)
-	e.message = message
+	e.message = &ErrorMessage{
+		StatusCode: e.HttpCode,
+		Message:    message.Message,
+		Errors:     message.Errors,
+	}
 
 	return e
 }

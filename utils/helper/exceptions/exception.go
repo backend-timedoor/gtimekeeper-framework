@@ -1,9 +1,9 @@
 package exceptions
 
 import (
-	"github.com/backend-timedoor/gtimekeeper-framework/utils/helper/types/protocol"
-	"google.golang.org/grpc/codes"
-	"net/http"
+    "github.com/backend-timedoor/gtimekeeper-framework/utils/helper/types/protocol"
+    "google.golang.org/grpc/codes"
+    "net/http"
 )
 
 // Generic function to handle different errors
@@ -25,8 +25,7 @@ func NewError(code any, defaultMsg string, args ...any) error {
 	gTimeError := GTimeError{
 		Protocol: ptc,
 	}
-	gTimeError.SetCodes(code)
-	err := gTimeError.Make(codes.NotFound, &ErrorMessage{
+	err := gTimeError.Make(code, &ErrorMessage{
 		Message: msg,
 	})
 
