@@ -22,7 +22,8 @@ func (u *ExistsValidator) Handle(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	tableName, fieldName := params[0], params[1]
+	fieldName := params[len(params)-1]
+	tableName := strings.Join(params[:len(params)-1], ".")
 
 	db := container.Get(database.ContainerName).(*database.Database)
 
