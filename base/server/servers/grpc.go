@@ -39,7 +39,7 @@ func (g *Grpc) RegisterHandler(t any) {
 	if !isHandler {
 		for i := 0; i < methods.NumMethod(); i++ {
 			method := methods.Method(i)
-			fmt.Println(method.Name)
+			//fmt.Println(method.Name)
 			execMethod := reflect.ValueOf(t).MethodByName(method.Name).Call(nil)
 
 			for _, instance := range execMethod[1].Interface().([]any) {

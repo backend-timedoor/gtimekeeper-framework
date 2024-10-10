@@ -19,6 +19,7 @@ type Validator interface {
 	Values() any
 	Type() protocol.Protocol
 	Rules() map[string]string
+	Messages() map[string]string
 }
 
 type Validation struct {
@@ -41,10 +42,15 @@ func (v *Validation) RegisterCustomValidation(validations []contracts.CustomeVal
 // new function
 
 func (v *Validation) Make(c Validator) (any, error) {
-	return v.Check(c.Type(), c.Values(), c.Rules())
+	return v.Check(c.Type(), c.Values(), c.Rules(), c.Messages())
 }
-func (v *Validation) Check(ptc protocol.Protocol, d any, rules map[string]string) (any, error) {
+func (v *Validation) Check(ptc protocol.Protocol, d any, rules map[string]string, messages ...map[string]string) (any, error) {
 	errors := map[string]any{}
+
+	message := map[string]string{}
+	if len(messages) > 0 {
+		message = messages[0]
+	}
 
 	// check d type is struct or not if map dont convert to map
 	data := d
@@ -56,7 +62,7 @@ func (v *Validation) Check(ptc protocol.Protocol, d any, rules map[string]string
 		}
 	}
 
-	v.validation(data, rules, "", "", errors)
+	v.validation(data, rules, message, "", "", errors)
 
 	if len(errors) > 0 {
 		err := v.Error.Make(http.StatusUnprocessableEntity, &exceptions.ErrorMessage{
@@ -75,7 +81,7 @@ func (v *Validation) Check(ptc protocol.Protocol, d any, rules map[string]string
 	return data, nil
 }
 
-func (v *Validation) validation(d any, rules map[string]string, field string, prefix string, errorsBag map[string]any) {
+func (v *Validation) validation(d any, rules map[string]string, messages map[string]string, field string, prefix string, errorsBag map[string]any) {
 	rd := reflect.ValueOf(d)
 
 	if rd.Kind() == reflect.Ptr {
@@ -89,21 +95,30 @@ func (v *Validation) validation(d any, rules map[string]string, field string, pr
 			if prefix != "" {
 				keyName = prefix + "." + val.String()
 			}
-			v.validation(rd.MapIndex(val).Interface(), rules, val.String(), keyName, errorsBag)
+
+			v.validation(rd.MapIndex(val).Interface(), rules, messages, val.String(), keyName, errorsBag)
 		}
 	case reflect.Slice:
 		for i := 0; i < rd.Len(); i++ {
 			keyName := fmt.Sprintf("%s[%d]", prefix, i)
 
-			v.validation(rd.Index(i).Interface(), rules, field, keyName, errorsBag)
+			v.validation(rd.Index(i).Interface(), rules, messages, field, keyName, errorsBag)
 		}
 	default:
-		if rule, exists := rules[helper.ReplaceWithPattern(prefix, `\[\d+\]`, ".*")]; exists {
+		rule, exists := rules[helper.ReplaceWithPattern(prefix, `\[\d+\]`, ".*")]
+		if exists {
 			if err := v.Validator.Var(rd.Interface(), rule); err != nil {
 				for _, err := range err.(validator.ValidationErrors) {
 					lFullName := strings.ToLower(prefix)
 					lFieldName := strings.ToLower(field)
-					errorsBag[lFullName] = fmt.Sprintf("The %s field is %s %s", lFieldName, err.ActualTag(), err.Param())
+
+					keyMsg := fmt.Sprintf("%s.%s", helper.ReplaceWithPattern(prefix, `\[\d+\]`, ".*"), err.ActualTag())
+					msg, ok := messages[keyMsg]
+					if ok {
+						errorsBag[lFullName] = msg
+					} else {
+						errorsBag[lFullName] = fmt.Sprintf("The %s field is %s %s", lFieldName, err.ActualTag(), err.Param())
+					}
 				}
 			}
 		}
