@@ -31,7 +31,7 @@ func (r *PaginationRequest) GetPaginationRequest() error {
 		r.Page = page
 	}
 
-	if r.Limit <= 0 || r.Limit >= 50 {
+	if r.Limit <= 0 || r.Limit > 100 {
 		r.Limit = limit
 	}
 
