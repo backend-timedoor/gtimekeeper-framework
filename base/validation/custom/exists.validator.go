@@ -16,7 +16,12 @@ func (u *ExistsValidator) Signature() string {
 
 func (u *ExistsValidator) Handle(fl validator.FieldLevel) bool {
 	params := strings.Split(fl.Param(), ".")
-	fieldValue := fl.Field().Int()
+	var fieldValue interface{}
+	if fl.Field().CanInt() {
+		fieldValue = fl.Field().Int()
+	} else {
+		fieldValue = fl.Field().String()
+	}
 
 	if len(params) < 2 {
 		return true
