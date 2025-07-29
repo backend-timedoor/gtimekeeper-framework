@@ -16,6 +16,7 @@ type PgsqlDriver struct {
 	Password string
 	Database string
 	Port     int
+	Config   pg.Config
 }
 
 func (d *PgsqlDriver) GetConnection() string {
@@ -29,7 +30,7 @@ func (d *PgsqlDriver) GetSqlDb() *sql.DB {
 }
 
 func (d *PgsqlDriver) GetDriver() (database.Driver, error) {
-	return pg.WithInstance(d.GetSqlDb(), &pg.Config{})
+	return pg.WithInstance(d.GetSqlDb(), &d.Config)
 }
 
 func (d *PgsqlDriver) GetGormDialect() gorm.Dialector {
