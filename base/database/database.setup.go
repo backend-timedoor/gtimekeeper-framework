@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-
 	bm "github.com/backend-timedoor/gtimekeeper-framework/base/database/mongo"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/database/redis"
 	"github.com/backend-timedoor/gtimekeeper-framework/container"
