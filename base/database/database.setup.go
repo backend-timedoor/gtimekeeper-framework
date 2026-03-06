@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 
 	bm "github.com/backend-timedoor/gtimekeeper-framework/base/database/mongo"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/database/redis"
@@ -9,6 +11,7 @@ import (
 	db "github.com/golang-migrate/migrate/v4/database"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
+	"gorm.io/plugin/dbresolver"
 )
 
 const ContainerName string = "db"
@@ -33,6 +36,7 @@ type DatabaseDriver interface {
 
 type Config struct {
 	Driver     DatabaseDriver
+	ReadDriver DatabaseDriver
 	GormConfig *gorm.Config
 	Mongo      string
 	Redis      *redis.Config
@@ -48,9 +52,21 @@ func New(config *Config) *Database {
 		l = container.Log()
 	)
 
-	db.DB, err = gorm.Open(config.Driver.GetGormDialect(), config.GormConfig)
+	db.DB, err = gorm.Open(config.Driver.GetGormDialect(), cloneGormConfig(config.GormConfig))
 	if err != nil {
 		l.Infof("Error connecting to database: %s", err.Error())
+	}
+
+	if config.ReadDriver != nil && config.ReadDriver.GetDsn() != config.Driver.GetDsn() {
+		err = db.DB.Use(dbresolver.Register(dbresolver.Config{
+			Replicas: []gorm.Dialector{
+				config.ReadDriver.GetGormDialect(),
+			},
+			Policy: dbresolver.RandomPolicy{},
+		}))
+		if err != nil {
+			l.Infof("Error configuring read/write database resolver: %s", err.Error())
+		}
 	}
 
 	if config.Mongo != "" {
@@ -71,6 +87,15 @@ func New(config *Config) *Database {
 	container.Set(ContainerName, db)
 
 	return db
+}
+
+func cloneGormConfig(config *gorm.Config) *gorm.Config {
+	if config == nil {
+		return &gorm.Config{}
+	}
+
+	c := *config
+	return &c
 }
 
 //func (d *Database) () *Database {
