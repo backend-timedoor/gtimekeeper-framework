@@ -2,8 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 
 	bm "github.com/backend-timedoor/gtimekeeper-framework/base/database/mongo"
 	"github.com/backend-timedoor/gtimekeeper-framework/base/database/redis"

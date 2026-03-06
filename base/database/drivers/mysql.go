@@ -3,7 +3,6 @@ package drivers
 import (
 	"database/sql"
 	"fmt"
-
 	"github.com/golang-migrate/migrate/v4/database"
 	my "github.com/golang-migrate/migrate/v4/database/mysql"
 	"gorm.io/driver/mysql"
@@ -16,6 +15,7 @@ type MysqlDriver struct {
 	Password string
 	Database string
 	Port     int
+	Config   my.Config
 }
 
 func (d *MysqlDriver) GetConnection() string {
@@ -29,7 +29,7 @@ func (d *MysqlDriver) GetSqlDb() *sql.DB {
 }
 
 func (d *MysqlDriver) GetDriver() (database.Driver, error) {
-	return my.WithInstance(d.GetSqlDb(), &my.Config{})
+	return my.WithInstance(d.GetSqlDb(), &d.Config)
 }
 
 func (d *MysqlDriver) GetGormDialect() gorm.Dialector {
