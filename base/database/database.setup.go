@@ -59,7 +59,7 @@ func New(config *Config) *Database {
 		l = container.Log()
 	)
 
-	db.DB, err = gorm.Open(config.Driver.GetGormDialect(), config.GormConfig)
+	db.DB, err = gorm.Open(config.Driver.GetGormDialect(), cloneGormConfig(config.GormConfig))
 	if err != nil {
 		l.Infof("Error connecting to database: %s", err.Error())
 	}
