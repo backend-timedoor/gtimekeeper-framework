@@ -19,10 +19,9 @@ var DBDriverAnchor DatabaseDriver
 
 type Database struct {
 	*gorm.DB
-	WithContext *gorm.DB
-	Mongo       *mongo.Client
-	Redis       *redis.Redis
-	Config      *Config
+	Mongo  *mongo.Client
+	Redis  *redis.Redis
+	Config *Config
 }
 
 type DatabaseDriver interface {
@@ -78,7 +77,8 @@ func New(config *Config) *Database {
 		}).
 			SetMaxIdleConns(resolvedPool.MaxIdleConns).
 			SetMaxOpenConns(resolvedPool.MaxOpenConns).
-			SetConnMaxLifetime(resolvedPool.ConnMaxLifetime)
+			SetConnMaxLifetime(resolvedPool.ConnMaxLifetime).
+			SetConnMaxIdleTime(resolvedPool.ConnMaxIdleTime)
 
 		err = db.DB.Use(resolver)
 		if err != nil {

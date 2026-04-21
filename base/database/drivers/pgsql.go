@@ -38,9 +38,8 @@ func (d *PgsqlDriver) GetGormDialect() gorm.Dialector {
 }
 
 func (d *PgsqlDriver) GetDsn() string {
-	// "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable options='-c statement_timeout=30000 -c lock_timeout=10000'",
 		d.Host,
 		d.Username,
 		d.Password,

@@ -3,7 +3,6 @@ package paginate
 import (
 	"math"
 
-	"github.com/backend-timedoor/gtimekeeper-framework/app"
 	"gorm.io/gorm"
 )
 
@@ -42,16 +41,21 @@ func Paginate(model interface{}, p *Pagination, req *PaginationRequest, scope ..
 	req.GetPaginationRequest()
 
 	offset := (req.Page - 1) * req.Limit
-	var totalData int64
-	app.DB.Model(model).Scopes(scope...).Count(&totalData)
-
-	totalPages := math.Ceil(float64(totalData) / float64(req.Limit))
-	p.LastPage = int(totalPages)
-	p.Total = int(totalData)
-	p.CurrentPage = req.Page
-	p.PerPage = req.Limit
 
 	return func(db *gorm.DB) *gorm.DB {
+		var totalData int64
+		countDB := db.Session(&gorm.Session{NewDB: true})
+		if db.Statement != nil && db.Statement.Context != nil {
+			countDB = countDB.WithContext(db.Statement.Context)
+		}
+		countDB.Model(model).Scopes(scope...).Count(&totalData)
+
+		totalPages := math.Ceil(float64(totalData) / float64(req.Limit))
+		p.LastPage = int(totalPages)
+		p.Total = int(totalData)
+		p.CurrentPage = req.Page
+		p.PerPage = req.Limit
+
 		return db.Scopes(scope...).Offset(offset).Limit(req.Limit)
 	}
 }
