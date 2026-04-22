@@ -3,6 +3,7 @@ package drivers
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4/database"
 	pg "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -16,6 +17,8 @@ type PgsqlDriver struct {
 	Password string
 	Database string
 	Port     int
+	SslMode  string
+	Options  string
 	Config   pg.Config
 }
 
@@ -38,12 +41,36 @@ func (d *PgsqlDriver) GetGormDialect() gorm.Dialector {
 }
 
 func (d *PgsqlDriver) GetDsn() string {
-	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable options='-c statement_timeout=30000 -c lock_timeout=10000'",
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		d.Host,
 		d.Username,
 		d.Password,
 		d.Database,
 		d.Port,
+		d.getSSLMode(),
 	)
+
+	if d.shouldSendOptions() {
+		dsn += fmt.Sprintf(" options='%s'", d.Options)
+	}
+
+	return dsn
+}
+
+func (d *PgsqlDriver) getSSLMode() string {
+	if d.SslMode == "" {
+		return "disable"
+	}
+
+	return d.SslMode
+}
+
+func (d *PgsqlDriver) shouldSendOptions() bool {
+	if strings.TrimSpace(d.Options) == "" {
+		return false
+	}
+
+	// RDS Proxy rejects PostgreSQL startup command-line options.
+	return !strings.Contains(d.Host, ".proxy-")
 }
